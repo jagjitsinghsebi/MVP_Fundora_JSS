@@ -235,7 +235,7 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
                   </button>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Back to Home */}
             <div className="mt-4 text-center">

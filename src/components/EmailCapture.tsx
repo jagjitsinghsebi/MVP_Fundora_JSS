@@ -237,6 +237,7 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
               </div>
             )}
 
+            <>
             {/* Back to Home */}
             <div className="mt-4 text-center">
               <button
@@ -246,6 +247,7 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
                 ← Go Back to Home
               </button>
             </div>
+            </>
 
           </div>
         </div>

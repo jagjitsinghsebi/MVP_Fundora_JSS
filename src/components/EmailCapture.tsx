@@ -51,7 +51,11 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
         const { data, error } = await authHelpers.signIn(email, password);
         
         if (error) {
-          setErrorMessage(error.message);
+          if (error.message.includes('Invalid login credentials')) {
+            setErrorMessage('Invalid email or password. Please check your credentials or sign up for a new account.');
+          } else {
+            setErrorMessage(error.message);
+          }
         } else if (data.user) {
           setSuccessMessage('Login successful!');
           // Store user email and proceed
@@ -62,7 +66,13 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
         const { data, error } = await authHelpers.signUp(email, password);
         
         if (error) {
-          setErrorMessage(error.message);
+          if (error.message.includes('Database error saving new user')) {
+            setErrorMessage('Unable to create account due to server configuration. Please contact support or try again later.');
+          } else if (error.message.includes('User already registered')) {
+            setErrorMessage('An account with this email already exists. Please try logging in instead.');
+          } else {
+            setErrorMessage(error.message);
+          }
         } else if (data.user) {
           setSuccessMessage('Account created successfully! Please check your email for verification.');
           // Store user email and proceed

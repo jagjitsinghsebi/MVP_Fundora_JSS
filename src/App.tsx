@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { authHelpers } from './lib/supabase';
 import Header from './components/Header';
 import HeroSection from './components/HeroSection';
 import BenefitsGrid from './components/BenefitsGrid';
@@ -17,11 +18,37 @@ function App() {
   const [userPersona, setUserPersona] = useState(localStorage.getItem("fundoraPersona") || "");
 
   useEffect(() => {
+    // Check for existing Supabase session
+    const checkAuthSession = async () => {
+      const { user } = await authHelpers.getCurrentUser();
+      if (user && user.email) {
+        setUserEmail(user.email);
+        localStorage.setItem("userEmail", user.email);
+      }
+    };
+
+    checkAuthSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = authHelpers.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user?.email) {
+        setUserEmail(session.user.email);
+        localStorage.setItem("userEmail", session.user.email);
+      } else if (event === 'SIGNED_OUT') {
+        handleLogout();
+      }
+    });
+
+    // Dark mode setup
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [darkMode]);
 
   // Don't auto-navigate - let user choose their path
@@ -47,10 +74,16 @@ function App() {
   };
 
   const handleLogout = () => {
+    // Sign out from Supabase
+    authHelpers.signOut();
+    
+    // Clear local storage
     localStorage.removeItem("userEmail");
     localStorage.removeItem("fundoraPersona");
     localStorage.removeItem("fundoraConversations");
     localStorage.removeItem("fundoraProfile");
+    
+    // Reset state
     setUserEmail("");
     setUserPersona("");
     setCurrentStep('landing');

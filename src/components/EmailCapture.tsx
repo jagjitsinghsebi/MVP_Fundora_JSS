@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import Header from './Header';
+import { authHelpers } from '../lib/supabase';
 
 interface EmailCaptureProps {
   darkMode: boolean;
@@ -14,6 +15,9 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
@@ -31,9 +35,45 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEmailValid && isPasswordValid) {
-      // For now, just proceed with email (you can add actual authentication later)
-      onEmailSubmit(email);
+    if (isEmailValid && isPasswordValid && !isLoading) {
+      handleAuth();
+    }
+  };
+
+  const handleAuth = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      if (isLogin) {
+        // Sign in existing user
+        const { data, error } = await authHelpers.signIn(email, password);
+        
+        if (error) {
+          setErrorMessage(error.message);
+        } else if (data.user) {
+          setSuccessMessage('Login successful!');
+          // Store user email and proceed
+          onEmailSubmit(email);
+        }
+      } else {
+        // Sign up new user
+        const { data, error } = await authHelpers.signUp(email, password);
+        
+        if (error) {
+          setErrorMessage(error.message);
+        } else if (data.user) {
+          setSuccessMessage('Account created successfully! Please check your email for verification.');
+          // Store user email and proceed
+          onEmailSubmit(email);
+        }
+      }
+    } catch (error) {
+      setErrorMessage('An unexpected error occurred. Please try again.');
+      console.error('Auth error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -68,13 +108,29 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
               />
               
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Login
+                {isLogin ? 'Login' : 'Sign Up'}
               </h1>
               
               <p className="text-gray-600 dark:text-gray-300">
-                Welcome to Fundora! Please sign in to continue your financial journey.
+                {isLogin 
+                  ? 'Welcome back to Fundora! Please sign in to continue your financial journey.'
+                  : 'Join Fundora today! Create your account to start your financial journey.'
+                }
               </p>
             </div>
+            
+            {/* Error/Success Messages */}
+            {errorMessage && (
+              <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl">
+                <p className="text-red-600 dark:text-red-400 text-sm">{errorMessage}</p>
+              </div>
+            )}
+            
+            {successMessage && (
+              <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl">
+                <p className="text-green-600 dark:text-green-400 text-sm">{successMessage}</p>
+              </div>
+            )}
             
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Field */}
@@ -126,15 +182,24 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
               <div className="pt-4">
                 <button
                   type="submit"
-                  disabled={!isFormValid}
+                  disabled={!isFormValid || isLoading}
                   className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center space-x-2 ${
-                    isFormValid
+                    isFormValid && !isLoading
                       ? 'bg-gradient-to-r from-purple-600 to-orange-500 text-white hover:from-purple-700 hover:to-orange-600 transform hover:scale-105 shadow-lg'
                       : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  <span>Login</span>
-                  <ArrowRight className="w-5 h-5" />
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <span>{isLogin ? 'Signing In...' : 'Creating Account...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{isLogin ? 'Login' : 'Sign Up'}</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -143,19 +208,20 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
               <div className="text-center">
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Don't have an account?
+                  {isLogin ? "Don't have an account?" : "Already have an account?"}
                 </p>
                 <button
+                  type="button"
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-purple-600 dark:text-purple-400 font-semibold hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
                 >
-                  Sign Up
+                  {isLogin ? 'Sign Up' : 'Login'}
                 </button>
               </div>
             </div>
 
             {/* Continue to Persona Detection */}
-            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {isFormValid && !isLoading && (
               <div className="text-center">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                   Or skip login for now

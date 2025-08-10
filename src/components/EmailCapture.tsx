@@ -159,6 +159,7 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
               <div className="text-center">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                   Or skip login for now
+                </p>
           {/* Continue to Persona Detection - Only show after form is completed */}
           {isFormValid && (
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">

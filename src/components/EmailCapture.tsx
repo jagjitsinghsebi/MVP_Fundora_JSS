@@ -160,22 +160,28 @@ const EmailCapture: React.FC<EmailCaptureProps> = ({ darkMode, toggleDarkMode, o
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                   Or skip login for now
                 </p>
-          {/* Continue to Persona Detection - Only show after form is completed */}
-          {isFormValid && (
-            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-center">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Or continue without creating account
-                </p>
-                <button
-                  onClick={handleContinueToPersona}
-                  className="px-6 py-2 rounded-lg font-medium transition-all bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                >
-                  Continue to Persona Detection
-                </button>
+                {isFormValid && (
+                  <button
+                    onClick={handleContinueToPersona}
+                    className="px-6 py-2 rounded-lg font-medium transition-all bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  >
+                    Continue to Persona Detection
+                  </button>
+                )}
               </div>
             </div>
-          )}
+
+            {/* Back to Home */}
+            <div className="mt-4 text-center">
+              <button
+                onClick={onBack}
+                className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
+              >
+                ← Go Back to Home
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
